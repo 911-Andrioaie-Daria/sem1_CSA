@@ -1,0 +1,70 @@
+     1                                  ;The program computes the expression (a*a/b+b*b)/(2+b)+e-x in the unsigned representation
+     2                                  
+     3                                  bits 32
+     4                                  
+     5                                  global start        
+     6                                  
+     7                                  
+     8                                  extern exit               
+     9                                  import exit msvcrt.dll   
+    10                                  
+    11                                  segment data use32 class=data
+    12 00000000 0C                          a db 12
+    13 00000001 2800                        b dw 40
+    14 00000003 64000000                    e dd 100
+    15 00000007 3200000000000000            x dq 50
+    16                                  
+    17                                  segment code use32 class=code
+    18                                      start:
+    19                                          
+    20                                          ;a*a/b
+    21 00000000 A0[00000000]                    mov AL, [a]    ;AL=a = 12
+    22 00000005 F625[00000000]                  mul byte [a]   ;AX=AL*a=a*a = 144
+    23                                          
+    24 0000000B 66BA0000                        mov DX, 0      ;DX:AX=a*a
+    25                                          
+    26 0000000F 66F735[01000000]                div word[b]    ;AX=DX:AX/b   =>AX=a*a/b  = 3
+    27                                          
+    28 00000016 6689C3                          mov BX, AX     ;BX=a*a/b
+    29 00000019 66B90000                        mov CX, 0      ;CX:BX = a*a/b
+    30                                          
+    31                                          
+    32                                          ;b*b
+    33 0000001D 66A1[01000000]                  mov AX, [b]    ;AX=b = 40
+    34 00000023 66F725[01000000]                mul word[b]    ;DX:AX = AX*b = b*b = 1600
+    35                                          
+    36                                          
+    37                                          ;add a*a/b and b*b
+    38 0000002A 6601D8                          add AX, BX
+    39 0000002D 6611CA                          adc DX, CX   ;DX:AX= DX:AX + CX:BX = a*a/b+b*b = 1603
+    40                                          
+    41                                          ;b+2
+    42 00000030 668B1D[01000000]                mov BX, [b]  ;BX=b = 40
+    43 00000037 6683C302                        add BX, 2    ;BX=BX+2 =42
+    44                                          
+    45                                          ;(a*a/b+b*b)/(2+b)
+    46 0000003B 66F7F3                          div BX       ;AX = DX:AX / BX  = (a*a/b+b*b)/(b+2) = 38
+    47                                               
+    48                                          
+    49                                          ;add e -> dword
+    50 0000003E 66BA0000                        mov DX, 0
+    51                                          
+    52 00000042 6652                            push DX
+    53 00000044 6650                            push AX
+    54 00000046 58                              pop EAX       ;DX:AX -> EAX   => EAX =(a*a/b+b*b)/(b+2) = 38
+    55                                          
+    56 00000047 0305[03000000]                  add EAX, [e]   ;EAX = EAX+e = (a*a/b+b*b)/(b+2)+e = 138
+    57                                          
+    58                                          
+    59                                          ;sub x -> qword
+    60 0000004D BA00000000                      mov EDX, 0   ;EDX:EAX = (a*a/b+b*b)/(b+2)+e
+    61                                          
+    62 00000052 2B05[07000000]                  sub EAX, dword[x]    ;subtract the low part of x
+    63 00000058 1B15[0B000000]                  sbb EDX, dword[x+4]  ;subtract the high part of x and the CF
+    64                                          
+    65                                          ;The final result is stored in EDX:EAX = (a*a/b+b*b)/(2+b)+e-x = 88
+    66                                          
+    67                                          
+    68                                          
+    69 0000005E 6A00                            push    dword 0     
+    70 00000060 FF15[00000000]                  call    [exit]       

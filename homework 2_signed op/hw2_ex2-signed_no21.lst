@@ -1,0 +1,57 @@
+     1                                  ;Computes the expression d-a+(b+a-c) in the signed representation
+     2                                  
+     3                                  bits 32
+     4                                  
+     5                                  global start
+     6                                  
+     7                                  extern exit
+     8                                  import exit msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11 00000000 0A                          a db 10
+    12 00000001 1E00                        b dw 30
+    13 00000003 32000000                    c dd 50
+    14 00000007 6400000000000000            d dq 100
+    15                                  segment code use32 class=code
+    16                                      start:
+    17                                          
+    18                                          ;d-a
+    19                                          
+    20                                          ;make 'a' the size of a quad in order to compute 'd-a'
+    21                                          
+    22 00000000 A0[00000000]                    mov AL, [a]         ;AL=a
+    23 00000005 6698                            cbw                 ;AL->AX   ;AX=a
+    24 00000007 98                              cwde                ;AX->EAX  ;EAX=a
+    25 00000008 99                              cdq                 ;EAX->EDX:EAX   ;EDX:EAX=a  the size of a quad
+    26                                          
+    27 00000009 8B1D[07000000]                  mov EBX, dword[d]
+    28 0000000F 8B0D[0B000000]                  mov ECX, dword[d+4] ;ECX:EBX=d
+    29                                          
+    30 00000015 29C3                            sub EBX, EAX
+    31 00000017 19D1                            sbb ECX, EDX        ;ECX:EBX=ECX:EBX-EDX:EAX   =>ECX:EBX=d-a == 90
+    32                                          
+    33                                          
+    34                                          ;b+a-c    ,a=byte, b=word, c=dword
+    35                                          
+    36 00000019 A0[00000000]                    mov AL, [a]         ;AL=a
+    37 0000001E 6698                            cbw                 ;AL->AX  =>AX=a = 10
+    38                                          
+    39 00000020 660305[01000000]                add AX, [b]         ;AX=b+a = 40
+    40                                          
+    41 00000027 98                              cwde                ;AX->EAX  =>EAX=b+a
+    42                                      
+    43 00000028 2B05[03000000]                  sub EAX, [c]          ;EAX=b+a-c
+    44                                          
+    45 0000002E 99                              cdq                 ;EAX->EDX:EAX   =>EDX:EAX=b+a-c  = -10
+    46                                          
+    47                                          
+    48                                          ;(d-a)+(b+a-c)
+    49                                          
+    50 0000002F 01D8                            add EAX, EBX
+    51 00000031 11CA                            adc EDX, ECX       ;EDX:EAX = EDX:EAX + ECX:EBX = (d-a)+(b+a-c) = 80
+    52                                          
+    53                                          
+    54                                          ;The final result is stored in EDX:EAX
+    55                                      
+    56 00000033 6A00                        push dword 0
+    57 00000035 FF15[00000000]              call [exit]
