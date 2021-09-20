@@ -1,0 +1,73 @@
+     1                                  bits 32 
+     2                                  
+     3                                  
+     4                                  global start        
+     5                                  
+     6                                  
+     7                                  extern exit               
+     8                                  import exit msvcrt.dll    
+     9                                                            
+    10                                  
+    11                                  
+    12                                  segment data use32 class=data
+    13 00000000 359D                        a dw 1001110100110101b
+    14 00000002 741C                        b dw 0001110001110100b
+    15 00000004 00000000                    c dd 0
+    16                                      
+    17                                  
+    18                                  
+    19                                  segment code use32 class=code
+    20                                  
+    21                                  ;Given the words A and B, compute the doubleword C as follows:
+    22                                  
+    23                                  ;the bits 0-3 of C are the same as the bits 5-8 of B
+    24                                  ;the bits 4-10 of C are the invert of the bits 0-6 of B
+    25                                  ;the bits 11-18 of C have the value 1
+    26                                  ;the bits 19-31 of C are the same as the bits 3-15 of B
+    27                                  
+    28                                      start:
+    29                                         
+    30                                      ;the bits 0-3 of C are the same as the bits 5-8 of B
+    31                                      
+    32 00000000 66B8E001                        mov AX, 0000000111100000b      ;create a mask for bits 5-8
+    33 00000004 662305[02000000]                and AX, [b]                    ;copy bits 5-8 of B into AX
+    34 0000000B 66C1C805                        ror AX, 5                      ;bring the bits to positions 0-3
+    35                                      
+    36 0000000F 660905[04000000]                or word[c], AX                 ;copy the bits 0-3 of AX onto the low word of C 
+    37                                   
+    38                                   
+    39                                      ;the bits 4-10 of C are the invert of the bits 0-6 of B
+    40                                      
+    41 00000016 66A1[02000000]                  mov AX,  [b]                   ;copy b in AX
+    42 0000001C 66F7D0                          not AX                         ;invert all bits of AX
+    43 0000001F 6683E07F                        and AX, 0000000001111111b      ;create a mask  for bits 0-6 of AX and isolate them
+    44                                          
+    45 00000023 66C1C004                        rol AX, 4                      ;rotate to left in order to bring the isolated bits to positions 4-10
+    46 00000027 660905[04000000]                or word[c], AX                ;copy the bits 4-10 of AX to the low word of C
+    47                                          
+    48                                          
+    49                                      ;the bits 11-18 of C have the value 1
+    50                                          
+    51 0000002E 66B8FF00                        mov AX, 0000000011111111b      ; the first 8 bits of AX are set to 1
+    52                                          
+    53 00000032 66BA0000                        mov DX, 0                      ;AX is converted into EAX
+    54 00000036 6652                            push DX
+    55 00000038 6650                            push AX
+    56 0000003A 58                              pop EAX
+    57                                          
+    58 0000003B C1C00B                          rol EAX, 11                    ;bring the '1' bits to positions 11-18 in EAX
+    59                                          
+    60 0000003E 0905[04000000]                  or [c], EAX                    ;copy these '1' bits onto the bits 11-18 of c
+    61                                          
+    62                                          
+    63                                      ;the bits 19-31 of C are the same as the bits 3-15 of B
+    64                                      
+    65 00000044 66A1[02000000]                  mov AX, [b]
+    66 0000004A 6683E0F8                        and AX, 1111111111111000b      ;isolate bits 3-15 of B in AX
+    67                                          
+    68 0000004E 660905[06000000]                or word[c+2], AX               ;copy the bits 3-15 of AX to the high word of C
+    69                                          
+    70                                          
+    71                                          
+    72 00000055 6A00                            push    dword 0      
+    73 00000057 FF15[00000000]                  call    [exit]
