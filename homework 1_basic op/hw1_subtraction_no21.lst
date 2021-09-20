@@ -1,0 +1,32 @@
+     1                                  ;The program computes the expression a-c+d-7+b-(2+d)
+     2                                  
+     3                                  bits 32
+     4                                  
+     5                                  global start
+     6                                  
+     7                                  extern exit
+     8                                  import exit msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11 00000000 3200                        a dw 50
+    12 00000002 0700                        b dw 7
+    13 00000004 0A00                        c dw 10
+    14 00000006 6E00                        d dw 110
+    15                                  
+    16                                  segment code use32 class=code
+    17                                      start:
+    18                                      
+    19 00000000 66A1[00000000]                  mov AX, [a] ;AX=a      ;a           ==50
+    20 00000006 662B05[04000000]                sub AX, [c] ;AX=AX-c   ;a-c         ==40 
+    21 0000000D 660305[06000000]                add AX, [d] ;AX=AX+d   ;a-c+d       ==150
+    22 00000014 6683E807                        sub AX, 7   ;AX=AX-7   ;a-c+d-7     ==143
+    23 00000018 660305[02000000]                add AX, [b] ;AX=AX+b   ;a-c+d-7+b   ==150
+    24                                          
+    25 0000001F 668305[06000000]02              add word[d], 2 ;d=d+2 =112
+    26                                          
+    27 00000027 662B05[06000000]                sub AX, [d] ;AX=AX-d   ;a-c+d-7+b-(2+d)  == 162
+    28                                          
+    29                                      ;The final result is stored in AX, which is 312
+    30                                          
+    31 0000002E 6A00                            push dword 0
+    32 00000030 FF15[00000000]                  call [exit]

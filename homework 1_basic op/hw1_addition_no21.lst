@@ -1,0 +1,31 @@
+     1                                  ;The program computes the expression (a-b)+(d-c)
+     2                                  bits 32
+     3                                  
+     4                                  global start
+     5                                  extern exit
+     6                                  
+     7                                  import exit msvcrt.dll
+     8                                  
+     9                                  segment data use32 class=data
+    10 00000000 1E                          a db 30
+    11 00000001 05                          b db 5
+    12 00000002 10                          c db 16
+    13 00000003 1B                          d db 27
+    14                                  segment code use32 class=code
+    15                                      start:
+    16                                      
+    17                                      ;(a-b)
+    18 00000000 A0[00000000]                    mov AL, [a]     ;AL=a
+    19 00000005 2A05[01000000]                  sub AL, [b]     ;AL=AL-b=a-b
+    20                                          
+    21                                      ;(d-c)
+    22 0000000B 8A1D[03000000]                  mov BL, [d] ;BL=d
+    23 00000011 2A1D[02000000]                  sub BL, [c] ;BL=BL-c=d-c
+    24                                          
+    25                                      ;add the two parantheses
+    26 00000017 00D8                            add AL, BL  ;AL=AL+BL=(a-b)+(d-c)
+    27                                    
+    28                                      ;The final result is stored in AL == 36
+    29                                          
+    30 00000019 6A00                            push dword 0
+    31 0000001B FF15[00000000]                  call [exit]

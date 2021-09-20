@@ -1,0 +1,49 @@
+     1                                  ;The program computes the expression d-[3*(a+b+2)-5*(c+2)]
+     2                                  
+     3                                  bits 32
+     4                                  
+     5                                  global start
+     6                                  
+     7                                  extern exit
+     8                                  import exit msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11 00000000 0A                          a db 10
+    12 00000001 0D                          b db 13
+    13 00000002 08                          c db 8
+    14 00000003 1405                        d dw 1300
+    15                                  
+    16                                  segment code use32 class=code
+    17                                      start:
+    18                                      
+    19                                      ;3*(a+b+2)
+    20                                      
+    21 00000000 A0[00000000]                    mov AL, [a] ;AL = a                            
+    22 00000005 0205[01000000]                  add AL, [b] ;AL = AL+b  ;a+b
+    23 0000000B 0402                            add AL, 2   ;AL = AL+2  ;a+b+2
+    24                                          
+    25 0000000D B403                            mov AH, 3   ;AH=3
+    26 0000000F F6E4                            mul AH      ;AX <- AL*AH  ;3*(a+b+2)
+    27                                          
+    28 00000011 6689C3                          mov BX, AX  ;BX=AX    ;BX=3*(a+b+2)
+    29                                      
+    30                                      ;5*(c+2)
+    31                                      
+    32 00000014 8005[02000000]02                add byte[c], 2 ;c=c+2
+    33 0000001B A0[02000000]                    mov AL, [c]    ;AL=c+2
+    34                                          
+    35 00000020 B405                            mov AH, 5
+    36 00000022 F6E4                            mul AH          ;AX <- AL*AH ;AX=5*(c+2)
+    37                                          
+    38                                          
+    39                                      ;3*(a+b+2)-5*(c+2)
+    40 00000024 6629C3                          sub BX, AX     ;BX=BX-AX   ;BX=3*(a+b+2)-5*(c+2)
+    41                                          
+    42 00000027 66291D[03000000]                sub [d], BX    ;d=d-BX     ;d=d-[3*(a+b+2)-5*(c+2)]
+    43                                          
+    44 0000002E 66A1[03000000]                  mov AX, [d]    ;AX=d
+    45                                          
+    46                                      ;now, the result of the expression is stored in AX=1275
+    47                                          
+    48 00000034 6A00                            push dword 0
+    49 00000036 FF15[00000000]                  call [exit]
